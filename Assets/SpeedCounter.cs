@@ -26,7 +26,7 @@ public class SpeedCounter : MonoBehaviour
             timer += Time.deltaTime;
             once = true;
         }
-        bar.size = player.rb.velocity.magnitude / 50;
+        bar.size = player.rb.velocity.magnitude / 55;
         text.text = "Time : " + timer.ToString("f2");
         if (player.end)
         {

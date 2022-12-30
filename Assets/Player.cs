@@ -43,11 +43,11 @@ public class Player : MonoBehaviour
         {
 
             rb.AddRelativeForce(Vector3.forward * Accel, ForceMode.Force);
-            if (Accel < 400) Accel += 1;
+            if (Accel < 425) Accel += 1;
           
         }
         
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.S))
         {
             rb.AddRelativeForce(Vector3.forward * Break, ForceMode.Force);
             if ( Accel > 200) Accel -= 3.5f;
@@ -92,10 +92,10 @@ public class Player : MonoBehaviour
         if (!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.Q)) drift = 0;
         if (drift != 0)
         {
-            MaxSpeed = 40;
+            MaxSpeed = 50;
             if (Accel > 250)Accel -= 2;
         }
-        else MaxSpeed = 50;
+        else MaxSpeed = 55;
 
         transform.Rotate(0, drift, 0);
 
@@ -114,7 +114,7 @@ public class Player : MonoBehaviour
 
         // Audio
 
-        source.pitch = Accel / 115;
+        source.pitch = rb.velocity.magnitude / 25;
         //source.volume = Accel / 7600;
     }
 
@@ -156,7 +156,7 @@ public class Player : MonoBehaviour
         {
             rb.AddForce(transform.up * gravity * 3);
             transform.Rotate(0.65f, 0, 0);
-            MaxSpeed = 43;
+            MaxSpeed = 50;
         }
     }
 
