@@ -27,6 +27,7 @@ public class Player : MonoBehaviour
     private float t = 0;
     private int check = 0;
     public bool end = false;
+    public AudioSource source;
     void OnEnable()
     {
         rb = GetComponent<Rigidbody>();
@@ -98,7 +99,6 @@ public class Player : MonoBehaviour
 
         transform.Rotate(0, drift, 0);
 
-
         // Suspensions
         SuspensionDetect();
 
@@ -111,6 +111,11 @@ public class Player : MonoBehaviour
             rb.velocity = new Vector3(0,0,0);
         }
         if (Input.GetKey(KeyCode.R)) SceneManager.LoadScene(0);
+
+        // Audio
+
+        source.pitch = Accel / 115;
+        //source.volume = Accel / 7600;
     }
 
     void SuspensionDetect()
@@ -160,6 +165,8 @@ public class Player : MonoBehaviour
         if (other.gameObject.CompareTag("Checkpoint"))
         {
             check++;
+            var audio = other.gameObject.GetComponent<AudioSource>();
+            audio.Play();
             RespawnPoint.transform.position = other.transform.position;
             RespawnPoint.transform.rotation = other.transform.localRotation;
         }
@@ -167,6 +174,8 @@ public class Player : MonoBehaviour
         {
             RespawnPoint.transform.position = other.transform.position;
             RespawnPoint.transform.rotation = other.transform.localRotation;
+            var audio = other.gameObject.GetComponent<AudioSource>();
+            audio.Play();
             if (check >= 5)
             {
                 StartCoroutine(finish());
@@ -181,7 +190,9 @@ public class Player : MonoBehaviour
         if (collision.gameObject.CompareTag("Obstacle"))
         {
             Accel = 200;
-            
+            rb.velocity /= 1.2f;
+            var audio = collision.gameObject.GetComponent<AudioSource>();
+            audio.Play();
         }
     }
 
