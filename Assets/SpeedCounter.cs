@@ -9,9 +9,10 @@ public class SpeedCounter : MonoBehaviour
     public Scrollbar bar;
     public Text text;
     public Text bestLapText;
-    private float timer;
+    public float timer;
     private float bestLap = 99999;
     private bool once;
+    public bool StartTime;
     // Start is called before the first frame update
     void Start()
     {
@@ -21,12 +22,12 @@ public class SpeedCounter : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!player.end)
+        if (!player.end && StartTime)
         {
             timer += Time.deltaTime;
             once = true;
         }
-        bar.size = player.rb.velocity.magnitude / 55;
+        bar.size = player.rb.velocity.magnitude / (55 * 1.5f);
         text.text = "Time : " + timer.ToString("f2");
         if (player.end)
         {

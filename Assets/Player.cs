@@ -14,23 +14,25 @@ public class Player : MonoBehaviour
     public float Turn;
     public float MaxSpeed;
     public bool forward = false;
-    private float y;
     private Vector3 VelocityUp;
     public RaycastHit suspension;
     private float distance;
     public float elevation;
     private Vector3 Tup;
     private Vector3 Smooth;
-    private Vector3 interpolatedNormal;
     public GameObject RespawnPoint;
     private float gravity = -20;
     private float t = 0;
     private int check = 0;
     public bool end = false;
     public AudioSource source;
+    public Transform Respawn;
+    private float coeff = 1;
+    public float coeffValue;
     void OnEnable()
     {
         rb = GetComponent<Rigidbody>();
+        
     }
 
     void FixedUpdate()
@@ -39,11 +41,11 @@ public class Player : MonoBehaviour
         else forward = false;
 
         // Speed
-        if (Input.GetKey(KeyCode.Z) && rb.velocity.magnitude < MaxSpeed)
+        if (Input.GetKey(KeyCode.Z) && rb.velocity.magnitude < MaxSpeed * coeff)
         {
 
-            rb.AddRelativeForce(Vector3.forward * Accel, ForceMode.Force);
-            if (Accel < 425) Accel += 1;
+            rb.AddRelativeForce(Vector3.forward * Accel * coeff, ForceMode.Force);
+            if (Accel < 425) Accel += 1 * coeff;
           
         }
         
@@ -68,7 +70,6 @@ public class Player : MonoBehaviour
             anim.SetBool("Turning_left", true);
             drift = -driftValue;
             rb.AddForce(transform.right * -Turn *sideSpeed, ForceMode.Force);
-            //rb.AddRelativeTorque(transform.up * Turn, ForceMode.Impulse);
         }
 
         if (!Input.GetKey(KeyCode.Q))
@@ -81,7 +82,6 @@ public class Player : MonoBehaviour
             rb.AddForce(transform.right * Turn * sideSpeed, ForceMode.Force);
             anim.SetBool("Turning_right", true);
             drift = driftValue;
-            //rb.AddRelativeTorque(transform.up * -Turn, ForceMode.Impulse);
         }
 
         if (!Input.GetKey(KeyCode.D))
@@ -106,16 +106,23 @@ public class Player : MonoBehaviour
         if (Input.GetKey(KeyCode.Space))
         {
             transform.position = RespawnPoint.transform.position;
-            transform.rotation = RespawnPoint.transform.rotation /** Quaternion.Euler(0,90,0)*/;
+            transform.rotation = RespawnPoint.transform.rotation;
             Accel = 200;
             rb.velocity = new Vector3(0,0,0);
         }
-        if (Input.GetKey(KeyCode.R)) SceneManager.LoadScene(0);
+        if (Input.GetKey(KeyCode.R))
+        {
+            transform.position = Respawn.position;
+            transform.rotation = Respawn.rotation;
+            Accel = 200;
+            rb.velocity = new Vector3(0, 0, 0);
+            GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().timer = 0;
+            GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().StartTime = false;
+        }
 
         // Audio
 
         source.pitch = rb.velocity.magnitude / 25;
-        //source.volume = Accel / 7600;
     }
 
     void SuspensionDetect()
@@ -149,7 +156,6 @@ public class Player : MonoBehaviour
                 rb.AddRelativeForce (interpolatedNormal * gravity);
                 distance = suspension.distance;
                 rb.AddRelativeForce((Vector3.up * ((elevation - distance) * 8)) - (VelocityUp /3), ForceMode.Impulse);
-                // debug
             }
         }
         else
@@ -172,9 +178,10 @@ public class Player : MonoBehaviour
         }
         if (other.gameObject.CompareTag("End"))
         {
+            GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().StartTime = true;
+            var audio = other.gameObject.GetComponent<AudioSource>();
             RespawnPoint.transform.position = other.transform.position;
             RespawnPoint.transform.rotation = other.transform.localRotation;
-            var audio = other.gameObject.GetComponent<AudioSource>();
             audio.Play();
             if (check >= 5)
             {
@@ -182,6 +189,12 @@ public class Player : MonoBehaviour
                 end = true;
                 check = 0;
             }
+        }
+        if (other.gameObject.CompareTag("Boost"))
+        {
+            coeff = coeffValue;
+            StartCoroutine(Boost());
+            print("Bosst");
         }
     }
 
@@ -200,5 +213,11 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         end = false;
+    }
+
+    IEnumerator Boost()
+    {
+        yield return new WaitForSeconds(1.5f);
+        coeff = 1;
     }
 }
