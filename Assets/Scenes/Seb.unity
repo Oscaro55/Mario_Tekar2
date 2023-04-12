@@ -1388,6 +1388,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Snail_retopobackup
       objectReference: {fileID: 0}
+    - target: {fileID: 7334800627580294154, guid: 669316d49d184cc429060f9d41b7ae63, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 82cb1b77dae4fa5469d40726d53f42d5, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 669316d49d184cc429060f9d41b7ae63, type: 3}
 --- !u!43 &113087806
@@ -2014,6 +2018,8 @@ MonoBehaviour:
   bar: {fileID: 186390299}
   text: {fileID: 2080285956}
   bestLapText: {fileID: 1655443375}
+  timer: 0
+  StartTime: 0
 --- !u!114 &186390299
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2648,7 +2654,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 280530882}
-  m_LocalRotation: {x: 0.12398371, y: 0.29658824, z: -0.038866013, w: 0.9461252}
+  m_LocalRotation: {x: 0.123983696, y: 0.29658827, z: -0.03886601, w: 0.9461252}
   m_LocalPosition: {x: -14.196285, y: -0.76199996, z: 5.7184253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -9423,7 +9429,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1037236554}
-  m_LocalRotation: {x: 0.12398371, y: 0.29658824, z: -0.038866013, w: 0.9461252}
+  m_LocalRotation: {x: 0.123983696, y: 0.29658827, z: -0.03886601, w: 0.9461252}
   m_LocalPosition: {x: -14.196285, y: -0.76199996, z: 5.7184253}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
@@ -14555,6 +14561,8 @@ MonoBehaviour:
   RespawnPoint: {fileID: 1092448843}
   end: 0
   source: {fileID: 1781337208}
+  Respawn: {fileID: 0}
+  coeffValue: 0
 --- !u!4 &1781337206
 Transform:
   m_ObjectHideFlags: 0
