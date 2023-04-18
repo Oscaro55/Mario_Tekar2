@@ -66,8 +66,7 @@ public class Player : MonoBehaviour
         }
         if (!forward && Accel < 200)
         {
-            print(rb.velocity.magnitude);
-            if (rb.velocity.magnitude < 3) rb.velocity = rb.velocity/1.5f;  
+            if (rb.velocity.magnitude < 3.5f) rb.velocity = rb.velocity/1.1f;  
         }
 
         //Turn
