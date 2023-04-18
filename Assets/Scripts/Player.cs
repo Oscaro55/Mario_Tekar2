@@ -62,11 +62,11 @@ public class Player : MonoBehaviour
         if (!forward && Accel > 200)
         {
             Accel -= 2;
-            rb.AddRelativeForce(Vector3.forward * Accel/1.5f, ForceMode.Force);
+            rb.AddRelativeForce(Vector3.forward * Accel / 1.5f, ForceMode.Force);
         }
         if (!forward && Accel < 200)
         {
-            if (rb.velocity.magnitude < 3.5f) rb.velocity = rb.velocity/1.1f;  
+            if (rb.velocity.magnitude < 3.5f) rb.velocity = rb.velocity / 1.1f;
         }
 
         //Turn
@@ -183,7 +183,7 @@ public class Player : MonoBehaviour
                 rb.AddForce(Vector3.up * gravity * 7);
                 MaxSpeed = 0;
             }
-            
+
         }
     }
     private void AnimBlend()
