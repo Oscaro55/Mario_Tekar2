@@ -7,8 +7,8 @@ public class Player : MonoBehaviour
 {
     public Rigidbody rb;
     public Animator anim;
-    public float Accel ;
-    public float Break ;
+    public float Accel;
+    public float Break;
     private float drift;
     public float driftValue;
     public float Turn;
@@ -29,10 +29,13 @@ public class Player : MonoBehaviour
     public Transform Respawn;
     private float coeff = 1;
     public float coeffValue;
+    private float animTurnRate;
+    public float animTurnRateCoef;
+    private float falling;
     void OnEnable()
     {
         rb = GetComponent<Rigidbody>();
-        
+
     }
 
     void FixedUpdate()
@@ -46,22 +49,27 @@ public class Player : MonoBehaviour
 
             rb.AddRelativeForce(Vector3.forward * Accel * coeff, ForceMode.Force);
             if (Accel < 425) Accel += 1 * coeff;
-          
+
         }
-        
+
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.S))
         {
             rb.AddRelativeForce(Vector3.forward * Break, ForceMode.Force);
-            if ( Accel > 200) Accel -= 3.5f;
-          
+            if (Accel > 200) Accel -= 3.5f;
+
         }
 
         if (!forward && Accel > 200)
         {
             Accel -= 2;
-            rb.AddRelativeForce(Vector3.forward * Accel, ForceMode.Force);
+            rb.AddRelativeForce(Vector3.forward * Accel/1.5f, ForceMode.Force);
         }
-       
+        if (!forward && Accel < 200)
+        {
+            print(rb.velocity.magnitude);
+            if (rb.velocity.magnitude < 3) rb.velocity = rb.velocity/1.5f;  
+        }
+
         //Turn
 
         var sideSpeed = Vector3.Project(rb.GetPointVelocity(transform.position), transform.right).magnitude * Vector3.Dot(rb.GetPointVelocity(transform.position).normalized, transform.right);
@@ -69,7 +77,7 @@ public class Player : MonoBehaviour
         {
             anim.SetBool("Turning_left", true);
             drift = -driftValue;
-            rb.AddForce(transform.right * -Turn *sideSpeed, ForceMode.Force);
+            rb.AddForce(transform.right * -Turn * sideSpeed, ForceMode.Force);
         }
 
         if (!Input.GetKey(KeyCode.Q))
@@ -90,10 +98,11 @@ public class Player : MonoBehaviour
         }
 
         if (!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.Q)) drift = 0;
+
         if (drift != 0)
         {
             MaxSpeed = 50;
-            if (Accel > 250)Accel -= 2;
+            if (Accel > 250) Accel -= 2;
         }
         else MaxSpeed = 55;
 
@@ -108,7 +117,7 @@ public class Player : MonoBehaviour
             transform.position = RespawnPoint.transform.position;
             transform.rotation = RespawnPoint.transform.rotation;
             Accel = 200;
-            rb.velocity = new Vector3(0,0,0);
+            rb.velocity = new Vector3(0, 0, 0);
         }
         if (Input.GetKey(KeyCode.R))
         {
@@ -119,6 +128,9 @@ public class Player : MonoBehaviour
             GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().timer = 0;
             GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().StartTime = false;
         }
+
+        // turn anim blend
+        AnimBlend();
 
         // Audio
 
@@ -131,7 +143,7 @@ public class Player : MonoBehaviour
 
         if (Physics.Raycast(transform.position + new Vector3(0, 0, 0.25f), transform.up * -1, out suspension, 3, 3))
         {
-           
+            falling = 0;
             if (suspension.transform.CompareTag("Road"))
             {
                 // normal
@@ -146,25 +158,65 @@ public class Player : MonoBehaviour
                 Vector3 interpolatedNormal = n0 * baryCenter.x + n1 * baryCenter.y + n2 * baryCenter.z;
                 interpolatedNormal = interpolatedNormal.normalized;
                 Tup = transform.up;
-                if (Vector3.Angle(Tup, interpolatedNormal) >1)
+                if (Vector3.Angle(Tup, interpolatedNormal) > 1)
                 {
                     if (t <= 1) t += Time.deltaTime;
                     Smooth = Vector3.Lerp(Tup, interpolatedNormal, t);
                     transform.rotation = Quaternion.FromToRotation(Tup, Smooth) * transform.rotation;
                 }
-                else t = 0; 
-                rb.AddRelativeForce (interpolatedNormal * gravity);
+                else t = 0;
+                rb.AddRelativeForce(interpolatedNormal * gravity);
                 distance = suspension.distance;
-                rb.AddRelativeForce((Vector3.up * ((elevation - distance) * 8)) - (VelocityUp /3), ForceMode.Impulse);
+                rb.AddRelativeForce((Vector3.up * ((elevation - distance) * 9)) - (VelocityUp / 3), ForceMode.Impulse);
             }
         }
         else
         {
-            rb.AddForce(transform.up * gravity * 3);
-            transform.Rotate(0.65f, 0, 0);
-            MaxSpeed = 50;
+            falling += Time.deltaTime;
+            if (falling < 3)
+            {
+                transform.Rotate(0.65f, 0, 0);
+                rb.AddForce(transform.up * gravity * 3);
+                MaxSpeed = 47.5f * coeff;
+            }
+            else
+            {
+                rb.AddForce(Vector3.up * gravity * 7);
+                MaxSpeed = 0;
+            }
+            
         }
     }
+    private void AnimBlend()
+    {
+        if (Input.GetKey(KeyCode.Q) && animTurnRate > 0)
+        {
+            animTurnRate -= Time.deltaTime * animTurnRateCoef;
+            anim.SetFloat("Blend", animTurnRate);
+        }
+
+        if (Input.GetKey(KeyCode.D) && animTurnRate < 1)
+        {
+            animTurnRate += Time.deltaTime * animTurnRateCoef;
+            anim.SetFloat("Blend", animTurnRate);
+        }
+
+        if (!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.Q))
+        {
+            if (animTurnRate < 0.475)
+            {
+                animTurnRate += Time.deltaTime * animTurnRateCoef;
+                anim.SetFloat("Blend", animTurnRate);
+            }
+            if (animTurnRate > 0.525)
+            {
+                animTurnRate -= Time.deltaTime * animTurnRateCoef;
+                anim.SetFloat("Blend", animTurnRate);
+            }
+        }
+    }
+
+
 
     private void OnTriggerEnter(Collider other)
     {
@@ -180,9 +232,10 @@ public class Player : MonoBehaviour
         {
             GameObject.Find("Scrollbar").GetComponent<SpeedCounter>().StartTime = true;
             var audio = other.gameObject.GetComponent<AudioSource>();
+            audio.Play();
             RespawnPoint.transform.position = other.transform.position;
             RespawnPoint.transform.rotation = other.transform.localRotation;
-            audio.Play();
+
             if (check >= 5)
             {
                 StartCoroutine(finish());
@@ -194,7 +247,6 @@ public class Player : MonoBehaviour
         {
             coeff = coeffValue;
             StartCoroutine(Boost());
-            print("Bosst");
         }
     }
 
