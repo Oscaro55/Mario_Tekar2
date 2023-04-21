@@ -1,7 +1,6 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
@@ -32,6 +31,7 @@ public class Player : MonoBehaviour
     private float animTurnRate;
     public float animTurnRateCoef;
     private float falling;
+    private float horizontalInput = 1;
     void OnEnable()
     {
         rb = GetComponent<Rigidbody>();
@@ -39,12 +39,10 @@ public class Player : MonoBehaviour
     }
 
     void FixedUpdate()
-    {
-        if (Input.GetKey(KeyCode.Z)) forward = true;
-        else forward = false;
+    {       
 
         // Speed
-        if (Input.GetKey(KeyCode.Z) && rb.velocity.magnitude < MaxSpeed * coeff)
+        if (InputManager.GetInstance().forward && rb.velocity.magnitude < MaxSpeed * coeff)
         {
 
             rb.AddRelativeForce(Vector3.forward * Accel * coeff, ForceMode.Force);
@@ -52,19 +50,19 @@ public class Player : MonoBehaviour
 
         }
 
-        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.S))
+        if (InputManager.GetInstance().backward)
         {
             rb.AddRelativeForce(Vector3.forward * Break, ForceMode.Force);
             if (Accel > 200) Accel -= 3.5f;
 
         }
 
-        if (!forward && Accel > 200)
+        if (!InputManager.GetInstance().forward && Accel > 200)
         {
             Accel -= 2;
             rb.AddRelativeForce(Vector3.forward * Accel / 1.5f, ForceMode.Force);
         }
-        if (!forward && Accel < 200)
+        if (InputManager.GetInstance().forward && Accel < 200)
         {
             if (rb.velocity.magnitude < 3) rb.velocity = Vector3.zero;
         }
@@ -72,36 +70,18 @@ public class Player : MonoBehaviour
         //Turn
 
         var sideSpeed = Vector3.Project(rb.GetPointVelocity(transform.position), transform.right).magnitude * Vector3.Dot(rb.GetPointVelocity(transform.position).normalized, transform.right);
-        if (Input.GetKey(KeyCode.Q))
-        {
-            anim.SetBool("Turning_left", true);
-            drift = -driftValue;
-            rb.AddForce(transform.right * -Turn * sideSpeed, ForceMode.Force);
-        }
 
-        if (!Input.GetKey(KeyCode.Q))
+        if (InputManager.GetInstance().Turn == 0) drift = 0;
+        else
         {
-            anim.SetBool("Turning_left", false);
+            drift = driftValue * InputManager.GetInstance().Turn;
         }
-
-        if (Input.GetKey(KeyCode.D))
-        {
-            rb.AddForce(transform.right * Turn * sideSpeed, ForceMode.Force);
-            anim.SetBool("Turning_right", true);
-            drift = driftValue;
-        }
-
-        if (!Input.GetKey(KeyCode.D))
-        {
-            anim.SetBool("Turning_right", false);
-        }
-
-        if (!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.Q)) drift = 0;
+       
 
         if (drift != 0)
         {
-            MaxSpeed = 50;
-            if (Accel > 250) Accel -= 2;
+            MaxSpeed = 55 - 7.5f * Mathf.Abs(InputManager.GetInstance().Turn);
+            if (Accel > 250) Accel -= 2 * Mathf.Abs(InputManager.GetInstance().Turn);
         }
         else MaxSpeed = 55;
 
@@ -111,14 +91,14 @@ public class Player : MonoBehaviour
         SuspensionDetect();
 
         //Reload
-        if (Input.GetKey(KeyCode.Space))
+        if (InputManager.GetInstance().lastChek)
         {
             transform.position = RespawnPoint.transform.position;
             transform.rotation = RespawnPoint.transform.rotation;
             Accel = 200;
             rb.velocity = new Vector3(0, 0, 0);
         }
-        if (Input.GetKey(KeyCode.R))
+        if (InputManager.GetInstance().Reset)
         {
             transform.position = Respawn.position;
             transform.rotation = Respawn.rotation;
@@ -188,19 +168,25 @@ public class Player : MonoBehaviour
     }
     private void AnimBlend()
     {
-        if (Input.GetKey(KeyCode.Q) && animTurnRate > 0)
+        if (InputManager.GetInstance().Turn == -1 && animTurnRate > InputManager.GetInstance().Turn)
         {
             animTurnRate -= Time.deltaTime * animTurnRateCoef;
             anim.SetFloat("Blend", animTurnRate);
         }
-
-        if (Input.GetKey(KeyCode.D) && animTurnRate < 1)
+        if (InputManager.GetInstance().Turn == 1 && animTurnRate < InputManager.GetInstance().Turn)
         {
             animTurnRate += Time.deltaTime * animTurnRateCoef;
             anim.SetFloat("Blend", animTurnRate);
         }
 
-        if (!Input.GetKey(KeyCode.D) && !Input.GetKey(KeyCode.Q))
+        if (InputManager.GetInstance().Turn >-1 && InputManager.GetInstance().Turn < 1 && InputManager.GetInstance().Turn != 0)
+        {
+            animTurnRate = transformValue(InputManager.GetInstance().Turn);
+            
+            anim.SetFloat("Blend", animTurnRate);
+        }
+
+        if (InputManager.GetInstance().Turn == 0)
         {
             if (animTurnRate < 0.475)
             {
@@ -215,7 +201,11 @@ public class Player : MonoBehaviour
         }
     }
 
-
+    private float transformValue(float value)
+    {
+        float result = Mathf.InverseLerp(-1, 1, value);
+        return result;
+    }
 
     private void OnTriggerEnter(Collider other)
     {
