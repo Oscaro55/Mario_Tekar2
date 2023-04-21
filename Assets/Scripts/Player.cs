@@ -238,6 +238,9 @@ public class Player : MonoBehaviour
             coeff = coeffValue;
             StartCoroutine(Boost());
             BoostLines.SetActive(true);
+            var audioBoost = other.gameObject.GetComponents<AudioSource>();
+            audioBoost[0].Play();
+            audioBoost[1].Play();
         }
     }
 
