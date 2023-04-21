@@ -31,7 +31,8 @@ public class Player : MonoBehaviour
     private float animTurnRate;
     public float animTurnRateCoef;
     private float falling;
-    private float horizontalInput = 1;
+    public GameObject BoostLines;
+
     void OnEnable()
     {
         rb = GetComponent<Rigidbody>();
@@ -236,6 +237,7 @@ public class Player : MonoBehaviour
         {
             coeff = coeffValue;
             StartCoroutine(Boost());
+            BoostLines.SetActive(true);
         }
     }
 
@@ -260,5 +262,6 @@ public class Player : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f);
         coeff = 1;
+        BoostLines.SetActive(false);
     }
 }
